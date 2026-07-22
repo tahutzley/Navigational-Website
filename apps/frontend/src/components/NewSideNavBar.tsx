@@ -10,12 +10,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 
 function NewSideNavBar() {
-  const { user } = useAuth0();
   const { logout } = useAuth0();
-  function isAdmin() {
-    const userRoles = user ? user["http://localhost:3000/roles"] : [];
-    return userRoles.includes("admin");
-  }
 
   const [collapsed, setCollapsed] = useState(true);
 
@@ -41,10 +36,7 @@ function NewSideNavBar() {
         }}
       >
         <div>
-          <Link
-            to={`${isAdmin() ? "/admin-map" : "/public-map"}`}
-            className={`${styles.navButtons}`}
-          >
+          <Link to="/admin-map" className={`${styles.navButtons}`}>
             <div
               className={`
               ${styles.row}

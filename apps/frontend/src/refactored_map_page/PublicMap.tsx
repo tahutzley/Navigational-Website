@@ -20,7 +20,6 @@ import ShowPathsButton from "./ShowAllPaths.tsx";
 import PublicMapLegend from "./PublicMapLegend.tsx";
 import { Box } from "@mui/material";
 import { EditorMode } from "common/src/types/map_page_types.ts";
-import { useAuth0 } from "@auth0/auth0-react";
 
 export default PublicMap;
 
@@ -42,13 +41,11 @@ function MapContents() {
     setTranslationY,
   } = useMapContext();
 
-  const { isAuthenticated } = useAuth0();
-
   const mapDiv: CSSProperties = {
     height: "100%",
-    maxWidth: `${isAuthenticated ? "calc(100% - 55px)" : "100%"}`,
-    float: `${isAuthenticated ? "right" : "none"}`,
-    position: `${isAuthenticated ? "relative" : "absolute"}`,
+    maxWidth: "calc(100% - 55px)",
+    float: "right",
+    position: "relative",
     overflow: "hidden",
   };
 

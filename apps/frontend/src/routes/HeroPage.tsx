@@ -37,7 +37,7 @@ function addAnimationClass(e: Event) {
 }
 
 function HeroPage() {
-  const { isAuthenticated, loginWithRedirect } = useAuth0();
+  const { loginWithRedirect } = useAuth0();
   const [disclaimerOpen, setDisclaimerOpen] = useState(true);
 
   const phrases: string[] = [
@@ -198,7 +198,7 @@ function HeroPage() {
           {/*Go to map*/}
           <div className={"boxMarg d-flex justify-content-end paragraph "}>
             <a
-              href={`${isAuthenticated ? "/admin-map" : "/public-map"}`}
+              href="/admin-map"
               id={"toMapClump"}
               className={
                 "toMap animate__animated animate__slower animate__headShake animate__infinite"
