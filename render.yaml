@@ -29,6 +29,9 @@ services:
     runtime: static
     buildCommand: yarn install --immutable && yarn turbo run build --filter=frontend
     staticPublishPath: apps/frontend/build
+    envVars:
+      - key: SKIP_INSTALL_DEPS
+        value: true
     routes:
       - type: rewrite
         source: /api/*
