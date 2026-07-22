@@ -67,9 +67,10 @@
 .image-area {
   background-image: url("../../public/brighamBG.png");
   background-position: center;
-  align-self: center;
-  height: 100%;
-  width: 100vw;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   position: fixed;
   /*background-attachment: fixed;*/
   background-size: 100% 100%;
