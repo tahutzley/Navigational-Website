@@ -9,7 +9,41 @@ import { IconButton, Snackbar, Switch, FormControlLabel } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import axios from "axios";
-import { Weather } from "common/src/backend_interfaces/weather.ts";
+
+// Brigham and Women's Hospital, 75 Francis St, Boston, MA 02115
+const BWH_LATITUDE = 42.3355;
+const BWH_LONGITUDE = -71.1066;
+
+function getOrdinalSuffix(day: number): string {
+  if (day >= 11 && day <= 13) {
+    return "th";
+  }
+  switch (day % 10) {
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
+  }
+}
+
+function formatDate(now: Date): string {
+  const weekday = now.toLocaleDateString("en-US", { weekday: "long" });
+  const month = now.toLocaleDateString("en-US", { month: "long" });
+  const day = now.getDate();
+  return `${weekday}, ${month} ${day}${getOrdinalSuffix(day)}`;
+}
+
+function formatTime(now: Date): string {
+  return now.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
 
 function addAnimationClass(e: Event) {
   e.preventDefault(); // Prevent the default action (navigation)
@@ -49,57 +83,65 @@ function HeroPage() {
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [temp, setTemp] = useState(0);
-  const [time, setTime] = useState("15:03");
-  const [date, setDate] = useState("Tuesday, April 30th");
+  const [tempF, setTempF] = useState<number | null>(null);
+  const [time, setTime] = useState(formatTime(new Date()));
+  const [date, setDate] = useState(formatDate(new Date()));
   const [toCelsius, setFahrenheit] = useState(false);
 
   useEffect(() => {
     const handleWeatherUpdate = async () => {
       try {
-        const response = await axios.get("/api/weather");
-        const weather: Weather = response.data;
+        const response = await axios.get(
+          "https://api.open-meteo.com/v1/forecast",
+          {
+            params: {
+              latitude: BWH_LATITUDE,
+              longitude: BWH_LONGITUDE,
+              current: "temperature_2m",
+              temperature_unit: "fahrenheit",
+              timezone: "America/New_York",
+            },
+          },
+        );
 
-        console.log(weather);
-        if (toCelsius) {
-          setTemp(Number(((weather.temp - 32) * (5 / 9)).toFixed(2)));
-        } else {
-          setTemp(weather.temp);
-        }
-
-        setTime(String(weather.time));
-        setDate(String(weather.date));
+        setTempF(response.data.current.temperature_2m);
       } catch (error) {
-        console.log("that failed bro");
+        console.log("failed to fetch weather near Brigham and Women's Hospital");
       }
     };
 
     handleWeatherUpdate().then();
-    console.log(temp);
-    console.log(time);
 
-    const interval = setInterval(() => {
+    const phraseInterval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % phrases.length);
-    }, 4000); // Change phrases every 3 seconds
+    }, 4000); // Change phrases every 4 seconds
 
-    // Set up interval to fetch weather data every 5 seconds
-    const weatherInterval = setInterval(handleWeatherUpdate, 5000);
+    // Weather doesn't change quickly, refresh every 5 minutes
+    const weatherInterval = setInterval(handleWeatherUpdate, 5 * 60 * 1000);
+
+    // Keep the date/time display live using the visitor's own clock
+    const clockInterval = setInterval(() => {
+      const now = new Date();
+      setTime(formatTime(now));
+      setDate(formatDate(now));
+    }, 1000);
 
     return () => {
-      clearInterval(interval);
+      clearInterval(phraseInterval);
       clearInterval(weatherInterval);
+      clearInterval(clockInterval);
     };
-  }, [phrases.length, temp, time, date, toCelsius]);
+  }, [phrases.length]);
+
+  const displayTemp =
+    tempF === null
+      ? null
+      : toCelsius
+        ? Number((((tempF as number) - 32) * (5 / 9)).toFixed(1))
+        : Number((tempF as number).toFixed(1));
 
   const handleTempChange = () => {
     setFahrenheit(!toCelsius);
-    if (toCelsius) {
-      // F to C
-      setTemp(Number(((temp - 32) * (5 / 9)).toFixed(2)));
-    } else {
-      // C to F
-      setTemp(Number((temp * (9 / 5) + 32).toFixed(2)));
-    }
   };
 
   const handleDisclaimerClose = (
@@ -172,7 +214,7 @@ function HeroPage() {
             {/*Temperature Display*/}
             <div className={"tempBox paragraph "}>
               <p className={"wordPad"}>
-                {temp}° {toCelsius ? "C" : "F"}
+                {displayTemp === null ? "--" : displayTemp}° {toCelsius ? "C" : "F"}
               </p>
               <DeviceThermostatIcon sx={{ color: "#ffffff", fontSize: 45 }}>
                 {" "}
