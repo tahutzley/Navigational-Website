@@ -160,20 +160,17 @@
   /*box-shadow: #024d88;*/
 }
 
-.fade-in-out {
-  animation: fadeInOut 3s linear infinite;
+.fade-text {
+  display: inline-block;
+  transition: opacity 0.8s ease;
 }
 
-@keyframes fadeInOut {
-  0% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+.fade-text.fade-hidden {
+  opacity: 0;
+}
+
+.fade-text.fade-visible {
+  opacity: 1;
 }
 
 .spacing {

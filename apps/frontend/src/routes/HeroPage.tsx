@@ -83,6 +83,7 @@ function HeroPage() {
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [phraseVisible, setPhraseVisible] = useState(true);
   const [tempF, setTempF] = useState<number | null>(null);
   const [time, setTime] = useState(formatTime(new Date()));
   const [date, setDate] = useState(formatDate(new Date()));
@@ -112,10 +113,6 @@ function HeroPage() {
 
     handleWeatherUpdate().then();
 
-    const phraseInterval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % phrases.length);
-    }, 4000); // Change phrases every 4 seconds
-
     // Weather doesn't change quickly, refresh every 5 minutes
     const weatherInterval = setInterval(handleWeatherUpdate, 5 * 60 * 1000);
 
@@ -127,10 +124,38 @@ function HeroPage() {
     }, 1000);
 
     return () => {
-      clearInterval(phraseInterval);
       clearInterval(weatherInterval);
       clearInterval(clockInterval);
     };
+  }, []);
+
+  // Fades the subtitle out and back in on a loop. The text only ever changes
+  // while it's fully faded out, and only every other fade-out, so it reads as
+  // "fade out, fade in, fade out, switch text, fade in" rather than a jarring
+  // swap while the old phrase is still partway visible.
+  useEffect(() => {
+    const FADE_DURATION = 800;
+    const DISPLAY_DURATION = 2500;
+    let fadeOutCount = 0;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const scheduleFadeOut = () => {
+      timeoutId = setTimeout(() => {
+        setPhraseVisible(false);
+        timeoutId = setTimeout(() => {
+          fadeOutCount += 1;
+          if (fadeOutCount % 2 === 0) {
+            setCurrentIndex((prevIndex) => (prevIndex + 1) % phrases.length);
+          }
+          setPhraseVisible(true);
+          scheduleFadeOut();
+        }, FADE_DURATION);
+      }, DISPLAY_DURATION);
+    };
+
+    scheduleFadeOut();
+
+    return () => clearTimeout(timeoutId);
   }, [phrases.length]);
 
   const displayTemp =
@@ -175,8 +200,7 @@ function HeroPage() {
 
             <div className={"subtitle"}>
               <span
-                key={currentIndex}
-                className={currentIndex === currentIndex ? "fade-in-out" : ""}
+                className={`fade-text ${phraseVisible ? "fade-visible" : "fade-hidden"}`}
               >
                 {phrases[currentIndex]}
               </span>
